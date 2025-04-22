@@ -10,43 +10,44 @@ export async function getGitAPI() {
     await gitExtension.activate();
   }
 
-  return gitExtension.exports.getAPI(1);
+  const api = gitExtension.exports.getAPI(1);
+  if (!api) {
+    throw new Error("Failed to get Git API");
+  }
+
+  return api;
 }
 
 export async function getGitDiff(): Promise<string> {
-  const api = await getGitAPI();
-  if (!api || !api.repositories?.length) {
-    throw new Error("No Git repositories found");
+  try {
+    const api = await getGitAPI();
+
+    // Добавляем проверки
+    if (!api.repositories || api.repositories.length === 0) {
+      throw new Error("No Git repositories found in workspace");
+    }
+
+    const repo = api.repositories[0];
+    return (await repo.diff(true)) || "";
+  } catch (error) {
+    console.error("Error getting Git diff:", error);
+    throw new Error("Failed to get Git diff");
   }
-
-  const repo = api.repositories[0];
-
-  // Получаем diff между HEAD и индексом (staged changes)
-  const diff = await repo.diff(true);
-
-  if (!diff?.trim()) {
-    throw new Error("No staged changes found");
-  }
-
-  return diff;
-}
-
-export async function hasStagedChanges(): Promise<boolean> {
-  const api = await getGitAPI();
-  const repo = api.repositories[0];
-
-  // Просто проверяем наличие любых изменений в индексе
-  return repo.state.indexChanges.length > 0;
 }
 
 export async function getCurrentBranchName(): Promise<string> {
   try {
     const api = await getGitAPI();
-    const repo = api?.repositories?.[0];
-    const branch = repo?.state.HEAD?.name?.toLowerCase() || "";
 
-    return branch;
-  } catch {
+    // Добавляем проверки
+    if (!api.repositories || api.repositories.length === 0) {
+      return "";
+    }
+
+    const repo = api.repositories[0];
+    return repo.state.HEAD?.name || "";
+  } catch (error) {
+    console.error("Error getting branch name:", error);
     return "";
   }
 }

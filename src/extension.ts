@@ -17,6 +17,22 @@ export function activate(context: vscode.ExtensionContext) {
     "generateCommit",
     async () => {
       try {
+        const gitApi = await getGitAPI();
+
+        // Проверяем наличие репозиториев
+        if (!gitApi.repositories || gitApi.repositories.length === 0) {
+          vscode.window.showErrorMessage("No Git repositories found");
+          return;
+        }
+
+        const repo = gitApi.repositories[0];
+
+        // Проверяем наличие изменений
+        if (repo.state.indexChanges.length === 0) {
+          vscode.window.showWarningMessage("No staged changes to commit");
+          return;
+        }
+
         statusBarItem.text = "$(loading~spin) Generating...";
         const diff = await getGitDiff();
 
@@ -34,8 +50,6 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         if (edited?.trim()) {
-          const gitApi = await getGitAPI();
-          const repo = gitApi?.repositories[0];
           await repo?.commit(edited.trim());
           vscode.window.showInformationMessage("Commit created successfully!");
         }

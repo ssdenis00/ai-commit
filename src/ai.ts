@@ -1,6 +1,30 @@
 import OpenAI from "openai";
 import { getWorkflowFromBranch } from "./git";
 
+interface ChatCompletionResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+interface ApiError {
+  message: string;
+  type?: string;
+  code?: number;
+}
+
+interface ApiErrorResponse {
+  error: ApiError;
+}
+
+type ApiResponse<T> = ChatCompletionResponse | ApiErrorResponse;
+
+function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
+  return "error" in response && !!response.error;
+}
+
 export async function generateCommitMessage(diff: string): Promise<string> {
   const apiKey = process.env.AI_API_KEY;
   const baseURL = process.env.AI_URL;
@@ -13,7 +37,7 @@ export async function generateCommitMessage(diff: string): Promise<string> {
   const openai = new OpenAI({ baseURL, apiKey });
   const workflow = await getWorkflowFromBranch();
 
-  const response = await openai.chat.completions.create({
+  const response = (await openai.chat.completions.create({
     messages: [
       {
         role: "system",
@@ -62,7 +86,12 @@ export async function generateCommitMessage(diff: string): Promise<string> {
     model,
     temperature: 0.3,
     max_tokens: 300,
-  });
+  })) as unknown as ApiResponse<ChatCompletionResponse>;
 
-  return response?.choices[0]?.message?.content?.trim() || "chore: update";
+  // Проверка на ошибку
+  if (isApiError(response)) {
+    throw new Error(response.error.message);
+  }
+
+  return response?.choices?.[0]?.message?.content?.trim() || "chore: update";
 }
