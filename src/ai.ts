@@ -36,9 +36,9 @@ Git diff (truncated to 3000 chars):\n\n${diff.slice(0, 3000)}`,
       },
     ],
     model,
-    temperature: 0.5,
+    temperature: 0.3,
     max_tokens: 300,
   });
 
-  return response.choices[0]?.message?.content?.trim() || "chore: update";
+  return response?.choices[0]?.message?.content?.trim() || "chore: update";
 }

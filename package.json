@@ -2,7 +2,7 @@
   "name": "ai-commit",
   "displayName": "ai-commit",
   "description": "auto generate commits for git",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "dinis-l",
   "engines": {
     "vscode": "^1.99.0"
