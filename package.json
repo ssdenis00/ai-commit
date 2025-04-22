@@ -24,10 +24,8 @@
     ]
   },
   "scripts": {
-    "dev": "vscode-extension-hot-reload",
     "vscode:prepublish": "yarn run package",
     "compile": "yarn run check-types && yarn run lint && node esbuild.js",
-    "watch:hot-reload": "yarn run dev --watch ./out",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
