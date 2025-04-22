@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { getCurrentBranchWorkflow } from "./git";
+import { getWorkflowFromBranch } from "./git";
 
 export async function generateCommitMessage(diff: string): Promise<string> {
   const apiKey = process.env.AI_API_KEY;
@@ -11,28 +11,52 @@ export async function generateCommitMessage(diff: string): Promise<string> {
   }
 
   const openai = new OpenAI({ baseURL, apiKey });
-  const workflow = await getCurrentBranchWorkflow();
+  const workflow = await getWorkflowFromBranch();
 
   const response = await openai.chat.completions.create({
     messages: [
       {
         role: "system",
-        content: `Generate RU/EN conventional commit message from these changes.
-Strict format:
-${workflow ? "<type>(<workflow>): <subject>" : "<type>: <subject>"}
-
-Rules:
-1. type: feat|fix|docs|style|refactor|test|chore|perf|build|ci|revert
-2. workflow: detected from branch (${workflow || "skip if empty"})
-3. subject: clear, concise, imperative mood, lowercase, no period
-4. Max 50 characters for subject
-
-Examples:
-- feat(auth): add email validation
-- fix(profile): correct avatar scaling
-- chore: update eslint config
-
-Git diff (truncated to 3000 chars):\n\n${diff.slice(0, 3000)}`,
+        content: `Generate conventional commit message from these changes.
+  Strict format: 
+  ${workflow ? `<type>(${workflow}): <subject>` : `<type>: <subject>`}
+  
+  Rules:
+  1. type: ${[
+    "feat",
+    "fix",
+    "docs",
+    "style",
+    "refactor",
+    "test",
+    "chore",
+    "perf",
+    "build",
+    "ci",
+    "revert",
+  ].join("|")}
+  2. workflow: "${workflow}" (use exactly as provided)
+  3. subject: 
+     - Imperative mood: "add" not "added", "fix" not "fixed"
+     - Lowercase, no period
+     - Max 50 chars
+     - In Russian or English
+  
+  Examples${workflow ? ` (with ${workflow} workflow):` : ":"}
+  ${
+    workflow
+      ? `
+  - feat(${workflow}): добавить валидацию email
+  - fix(${workflow}): исправить ошибку загрузки аватара`
+      : `
+  - feat: добавить новый лейаут
+  - fix: исправить тип данных`
+  }
+  
+  Current changes (truncated):
+  \`\`\`
+  ${diff.slice(0, 3000)}
+  \`\`\``,
       },
     ],
     model,
