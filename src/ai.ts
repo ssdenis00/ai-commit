@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { getWorkflowFromBranch } from "./git";
+import { getWorkflowFromChanges } from "./git";
 
 interface ChatCompletionResponse {
   choices: Array<{
@@ -35,7 +35,7 @@ export async function generateCommitMessage(diff: string): Promise<string> {
   }
 
   const openai = new OpenAI({ baseURL, apiKey });
-  const workflow = await getWorkflowFromBranch();
+  const workflow = await getWorkflowFromChanges(diff);
 
   const response = (await openai.chat.completions.create({
     messages: [
