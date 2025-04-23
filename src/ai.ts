@@ -41,6 +41,12 @@ function buildPrompt({ diff, fileList }: { diff: string; fileList: string[] }) {
   File changes:
   ${formatFileList(fileList)}
 
+  Important:
+    - Output ONLY the raw commit message
+    - No additional text before/after
+    - Never wrap message in backticks or quotes
+    - Avoid special characters except allowed in conventional commits
+
   Rules:
   1. type: ${[
     "feat",
@@ -65,8 +71,10 @@ function buildPrompt({ diff, fileList }: { diff: string; fileList: string[] }) {
       - Imperative mood: "add" not "added", "fix" not "fixed"
       - Lowercase, no period
       - Max 50 chars
+  4. Strictly use format: <type>(<workflow>): <subject>
+  5. Never use any markdown, backticks, or code formatting
 
-  Examples:     
+  Examples of VALID formats:     
     File changes:
       • src/flows/user/profile/avatar.ts
       • src/flows/user/settings/controller.ts
@@ -77,6 +85,11 @@ function buildPrompt({ diff, fileList }: { diff: string; fileList: string[] }) {
       • src/shared/utils/helpers.js
     return
       feat(utils): add new helper
+
+      Examples of INVALID formats:
+   \`\`\`feat(auth): ...\`\`\`
+   **fix**: resolve issue
+   [chore] update config
   
   Current changes (truncated):
   \`\`\`
@@ -86,7 +99,7 @@ function buildPrompt({ diff, fileList }: { diff: string; fileList: string[] }) {
 
 function formatFileList(files: string[]): string {
   return files
-    .map((f) => `• ${f}`)
+    .map((f) => `- ${f}`)
     .slice(0, 15) // Ограничиваем количество файлов для промпта
     .join("\n");
 }
