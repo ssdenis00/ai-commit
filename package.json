@@ -2,7 +2,7 @@
   "name": "ai-commit",
   "displayName": "ai-commit",
   "description": "auto generate commits for git",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "publisher": "dinis-l",
   "engines": {
     "vscode": "^1.99.0"
@@ -19,7 +19,9 @@
     "commands": [
       {
         "command": "generateCommit",
-        "title": "Generate Commit"
+        "title": "Generate Commit",
+        "category": "Git",
+        "enablement": "gitRepository"
       }
     ]
   },

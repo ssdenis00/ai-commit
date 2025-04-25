@@ -82,6 +82,12 @@ function buildPrompt({ diff, fileList }: { diff: string; fileList: string[] }) {
       fix(user): change types avatar
 
     File changes:
+      • src/flows/soft-skills/home/home.ts
+      • src/flows/soft-skills/survey/controller.ts
+    return
+      fix(soft-skills): change types avatar
+
+    File changes:
       • src/shared/utils/helpers.js
     return
       feat(utils): add new helper

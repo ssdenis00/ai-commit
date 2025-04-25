@@ -15,7 +15,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   const disposable = vscode.commands.registerCommand(
     "generateCommit",
-    async () => {
+    async (retryMessage?: string) => {
+      let message: string | undefined;
+      let edited: string | undefined;
+
       try {
         const gitApi = await getGitAPI();
 
@@ -41,8 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        const message = await generateCommitMessage(diff);
-        const edited = await vscode.window.showInputBox({
+        message = retryMessage || (await generateCommitMessage(diff));
+
+        edited = await vscode.window.showInputBox({
           value: message,
           prompt: "Edit commit message",
           validateInput: (text) =>
@@ -51,12 +55,20 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (edited?.trim()) {
           await repo?.commit(edited.trim());
+
           vscode.window.showInformationMessage("Commit created successfully!");
         }
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        console.error("Commit generation error:", error);
-        vscode.window.showErrorMessage(`Commit Error: ${msg}`);
+        console.error("Commit Error:", error);
+
+        // Автоматический ретрай с сохраненным сообщением
+        if (edited) {
+          vscode.window.showErrorMessage(`Commit failed: ${msg}`);
+          vscode.commands.executeCommand("generateCommit", edited); // Повторный вызов
+        } else {
+          vscode.window.showErrorMessage(`Commit failed: ${msg}`);
+        }
       } finally {
         statusBarItem.text = "$(check) Commit Ready!";
         setTimeout(
