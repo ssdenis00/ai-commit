@@ -2,7 +2,7 @@
   "name": "ai-commit",
   "displayName": "ai-commit",
   "description": "auto generate commits for git",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "publisher": "dinis-l",
   "engines": {
     "vscode": "^1.99.0"
@@ -16,12 +16,60 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "menus": {
+      "scm/title": [
+        {
+          "command": "aiCommit.generateCommit",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AI Commit",
+      "properties": {
+        "aiCommit.baseURL": {
+          "type": "string",
+          "default": "https://openrouter.ai/api/v1",
+          "description": "Base URL for AI API"
+        },
+        "aiCommit.model": {
+          "type": "string",
+          "default": "google/gemini-2.0-flash-exp:free",
+          "description": "Model name to use for generation"
+        },
+        "aiCommit.temperature": {
+          "type": "number",
+          "default": 0.3,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Creativity level (0-2)"
+        },
+        "aiCommit.maxTokens": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 2000,
+          "description": "Maximum response length"
+        }
+      }
+    },
     "commands": [
       {
-        "command": "generateCommit",
+        "command": "aiCommit.generateCommit",
         "title": "Generate Commit",
-        "category": "Git",
-        "enablement": "gitRepository"
+        "icon": "$(hubot)",
+        "category": "AI Commit"
+      },
+      {
+        "command": "aiCommit.setApiKey",
+        "title": "Set API Key",
+        "category": "AI Commit"
+      },
+      {
+        "command": "aiCommit.configure",
+        "title": "Configure AI Settings",
+        "category": "AI Commit"
       }
     ]
   },
@@ -54,7 +102,6 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "dotenv": "^16.5.0",
     "openai": "^4.95.1"
   }
 }

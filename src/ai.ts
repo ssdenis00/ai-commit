@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import * as vscode from "vscode";
+import { ConfigManager } from "./configuration";
 import { getChangedFlowFiles } from "./git";
 
 interface FileContext {
@@ -110,13 +112,18 @@ function formatFileList(files: string[]): string {
     .join("\n");
 }
 
-export async function generateCommitMessage(diff: string): Promise<string> {
-  const apiKey = process.env.AI_API_KEY;
-  const baseURL = process.env.AI_URL;
-  const model = process.env.AI_MODEL;
+export async function generateCommitMessage({
+  context,
+  diff,
+}: {
+  context: vscode.ExtensionContext;
+  diff: string;
+}): Promise<string> {
+  const apiKey = await ConfigManager.getApiKey(context);
+  const { baseURL, model, temperature, maxTokens } = ConfigManager.getConfig();
 
   if (!apiKey || !baseURL || !model) {
-    throw new Error("API key, URL, or model not found in .env file");
+    throw new Error("API key, URL, or model not found");
   }
 
   const openai = new OpenAI({ baseURL, apiKey });
@@ -132,8 +139,8 @@ export async function generateCommitMessage(diff: string): Promise<string> {
       },
     ],
     model,
-    temperature: 0.3,
-    max_tokens: 300,
+    temperature,
+    max_tokens: maxTokens,
   })) as unknown as ApiResponse<ChatCompletionResponse>;
 
   // Проверка на ошибку

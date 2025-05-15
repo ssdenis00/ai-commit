@@ -1,34 +1,37 @@
 import * as path from "path";
 import * as vscode from "vscode";
 
-export async function getGitAPI() {
-  const gitExtension = vscode.extensions.getExtension("vscode.git");
-  if (!gitExtension) {
-    throw new Error("Git extension not found");
-  }
-
-  if (!gitExtension.isActive) {
-    await gitExtension.activate();
-  }
-
-  const api = gitExtension.exports.getAPI(1);
-  if (!api) {
-    throw new Error("Failed to get Git API");
-  }
-
-  return api;
-}
-
-export async function getGitDiff(): Promise<string> {
+export async function getRepo() {
   try {
-    const api = await getGitAPI();
+    const gitExtension = vscode.extensions.getExtension("vscode.git");
+    if (!gitExtension) {
+      throw new Error("Git extension not found");
+    }
+
+    if (!gitExtension.isActive) {
+      await gitExtension.activate();
+    }
+
+    const api = gitExtension.exports.getAPI(1);
+    if (!api) {
+      throw new Error("Failed to get Git API");
+    }
 
     // Добавляем проверки
     if (!api.repositories || api.repositories.length === 0) {
       throw new Error("No Git repositories found in workspace");
     }
 
-    const repo = api.repositories[0];
+    return api.repositories[0];
+  } catch (error) {
+    console.error("Error getting Git API:", error);
+  }
+}
+
+export async function getGitDiff(): Promise<string> {
+  try {
+    const repo = await getRepo();
+
     return (await repo.diff(true)) || "";
   } catch (error) {
     console.error("Error getting Git diff:", error);
